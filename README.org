@@ -1,0 +1,39 @@
+#+title: gptel-quick: Quick LLM lookups from Emacs
+
+gptel-quick is a tiny everyday helper for looking up or summarizing text using an LLM (Large Language Model) with low friction.
+
+It provides one command.  Call =gptel-quick= to show a short summary or explanation of the word at point, or an active region, in a popup.  This is useful for quickly looking up names, words, phrases, or summarizing/explaining prose or snippets of code, with minimal friction:
+
+When the popup is active,
+- press ~+~ to get a longer summary, 
+- ~M-w~ (or =kill-ring-save=) to copy the response,
+- or ~C-g~ (or =keyboard-quit=) to clear it.
+
+You can press ~+~ multiple times:
+  
+If the [[https://github.com/tumashu/posframe][posframe]] package (optional) is not installed, the response is messaged to the echo area instead.
+
+You can control the response word count (approximate) via =gptel-quick-word-count=, and the popup timeout via =gptel-quick-timeout=.
+
+Set =gptel-quick-use-context= if you have added context to gptel (other regions, buffers or files) and want that to be included in the queries.
+
+** Setup
+
+This package requires [[https://github.com/karthink/gptel][gptel]] and access to any LLM via gptel to be available.  See its README for details.
+
+Install this package however you install packages, either via straight/elpaca/quelpa, or the built-in =package-vc-install=, or by cloning this repo and running =package-install=file= on the repository directory.
+
+Once installed, you can call =gptel-quick= at any time on a word/region.
+
+It might be useful to add this command as an Embark action if you use Embark:
+
+#+begin_src emacs-lisp
+(keymap-set embark-general-map "?" #'gptel-quick)
+#+end_src
+
+You can set it in =embark-region-map= and =embark-identifier-map= instead of =embark-general-map= if you only want it available at certain times.
+
+** Notes
+
+This small package is intended as a demonstration of =gptel-request=, gptel's general purpose API for constructing prompts and querying LLMs from Emacs.
+
