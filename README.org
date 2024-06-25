@@ -1,16 +1,26 @@
-#+title: gptel-quick: Quick LLM lookups from Emacs
+#+title: gptel-quick: Quick LLM lookups in Emacs
 
-gptel-quick is a tiny everyday helper for looking up or summarizing text using an LLM (Large Language Model) with low friction.
+gptel-quick is a tiny everyday helper for easily looking up or summarizing text using an LLM (Large Language Model).
 
 It provides one command.  Call =gptel-quick= to show a short summary or explanation of the word at point, or an active region, in a popup.  This is useful for quickly looking up names, words, phrases, or summarizing/explaining prose or snippets of code, with minimal friction:
+
+https://github.com/karthink/gptel-quick/assets/8607532/11c21577-56e0-44fc-a6f2-14dff159bfb4
 
 When the popup is active,
 - press ~+~ to get a longer summary, 
 - ~M-w~ (or =kill-ring-save=) to copy the response,
 - or ~C-g~ (or =keyboard-quit=) to clear it.
 
-You can press ~+~ multiple times:
-  
+You can press ~+~ multiple times.
+
+Looking up a word in progressively more detail before copying the response:
+
+https://github.com/karthink/gptel-quick/assets/8607532/47c862fb-5240-4287-96cf-92f0fe194d1d  
+
+Explaining what a function does:
+
+https://github.com/karthink/gptel-quick/assets/8607532/6f75d283-9425-408b-996b-0702d47e20e6
+
 If the [[https://github.com/tumashu/posframe][posframe]] package (optional) is not installed, the response is messaged to the echo area instead.
 
 You can control the response word count (approximate) via =gptel-quick-word-count=, and the popup timeout via =gptel-quick-timeout=.
