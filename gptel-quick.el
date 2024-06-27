@@ -60,7 +60,7 @@
 (defvar gptel-quick-word-count 12
   "Approximate word count of LLM summary.")
 (defvar gptel-quick-timeout 10
-  "Time in seconds before dismissing the summary")
+  "Time in seconds before dismissing the summary.")
 (defvar gptel-quick-use-context nil
   "Whether to use gptel's active context.
 
@@ -69,6 +69,10 @@ This can include other regions, buffers or files added by
 
 ;;;###autoload
 (defun gptel-quick (query-text &optional count)
+  "Explain or summarize region or thing at point with an LLM.
+
+QUERY-TEXT is the text being explained.  COUNT is the approximate
+word count of the response."
   (interactive
    (list (cond
           ((use-region-p) (buffer-substring-no-properties (region-beginning)
@@ -92,7 +96,8 @@ This can include other regions, buffers or files added by
 ;; From (info "(elisp) Accessing Mouse")
 (defun gptel-quick--frame-relative-coordinates (position)
   "Return frame-relative coordinates from POSITION.
-          POSITION is assumed to lie in a window text area."
+
+POSITION is assumed to lie in a window text area."
   (let* ((x-y (posn-x-y position))
          (window (posn-window position))
          (edges (window-inside-pixel-edges window)))
