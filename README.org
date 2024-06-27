@@ -27,6 +27,10 @@ Explaining what a function does:
 
 https://github.com/karthink/gptel-quick/assets/8607532/6f75d283-9425-408b-996b-0702d47e20e6
 
+Finally, if you have follow-up questions you can switch to a chat buffer and continue the conversation with ~M-RET~:
+
+https://github.com/karthink/gptel-quick/assets/8607532/9d17886b-4994-4e3f-93d6-fda79fc814ad
+
 If the [[https://github.com/tumashu/posframe][posframe]] package (optional) is not installed, the response is messaged to the echo area instead.
 
 You can control the response word count (approximate) via =gptel-quick-word-count=, and the popup timeout via =gptel-quick-timeout=.

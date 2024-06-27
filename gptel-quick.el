@@ -34,7 +34,9 @@
 ;; summarizing/explaining prose or snippets of code, with minimal friction:
 ;; 
 ;; When the popup is active, press "+" to get a longer summary, M-w (or
-;; `kill-ring-save') to copy the text, or C-g (`keyboard-quit') to clear it.
+;; `kill-ring-save') to copy the text, or C-g (`keyboard-quit') to clear it.  If
+;; you have follow-up questions you can press M-RET to switch to a chat buffer
+;; and continue the conversation.
 ;;
 ;; If the posframe package is not installed (optional), the response is messaged
 ;; to the echo area instead.
@@ -124,12 +126,18 @@ quick actions on the popup."
                    "...generating longer summary..." pos)
                   (gptel-quick query (* count 4)))
                 (copy-response  () (interactive) (kill-new response)
-                  (message "Copied summary to kill-ring.")))
+                  (message "Copied summary to kill-ring."))
+                (create-chat () (interactive)
+                  (gptel (generate-new-buffer-name "*gptel-quick*") nil
+                         (concat query "\n\n"
+                                 (propertize response 'gptel 'response) "\n\n")
+                         t)))
         (set-transient-map
          (let ((map (make-sparse-keymap)))
            (define-key map [remap keyboard-quit] #'clear-response)
            (define-key map (kbd "+") #'more-response)
            (define-key map [remap kill-ring-save] #'copy-response)
+           (define-key map (kbd "M-RET") #'create-chat)
            map)
          nil #'clear-response nil gptel-quick-timeout)))))
 
