@@ -145,7 +145,7 @@ quick actions on the popup."
                        :string response
                        :position coords
                        :border-width 2
-                       :border-color (face-attribute 'child-frame-border :background)
+                       :border-color (face-attribute 'vertical-border :foreground)
                        :initialize #'visual-line-mode
                        :poshandler poshandler
                        :left-fringe 8
