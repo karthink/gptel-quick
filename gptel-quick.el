@@ -54,6 +54,9 @@
 (require 'gptel)
 (require 'thingatpt)
 
+(declare-function pdf-view-active-region-p "pdf-view")
+(declare-function pdf-view-active-region-text "pdf-view")
+
 (defvar gptel-quick-word-count 12
   "Approximate word count of LLM summary.")
 (defvar gptel-quick-timeout 10
@@ -67,10 +70,14 @@ This can include other regions, buffers or files added by
 ;;;###autoload
 (defun gptel-quick (query-text &optional count)
   (interactive
-   (list (if (use-region-p)
-             (buffer-substring-no-properties (region-beginning)
-                                             (region-end))
-           (thing-at-point 'sexp))))
+   (list (cond
+          ((use-region-p) (buffer-substring-no-properties (region-beginning)
+                                                          (region-end)))
+          ((and (derived-mode-p 'pdf-view-mode)
+                (pdf-view-active-region-p))
+           (mapconcat #'identity (pdf-view-active-region-text) "\n\n"))
+          (t (thing-at-point 'sexp)))
+         current-prefix-arg))
   (let* ((count (or count gptel-quick-word-count))
          (gptel-max-tokens (floor (+ (sqrt (length query-text))
                                      (* count 2.5))))
@@ -89,8 +96,8 @@ This can include other regions, buffers or files added by
   (let* ((x-y (posn-x-y position))
          (window (posn-window position))
          (edges (window-inside-pixel-edges window)))
-    (cons (+ (car x-y) (car edges))
-          (+ (cdr x-y) (cadr edges)))))
+    (cons (+ (or (car x-y) 0) (car edges))
+          (+ (or (cdr x-y) 0) (cadr edges)))))
 
 (declare-function posframe-show "posframe")
 (declare-function posframe-hide "posframe")
@@ -124,13 +131,18 @@ quick actions on the popup."
 (defun gptel-quick--update-posframe (response pos)
   "Show RESPONSE at in a posframe (at POS) or the echo area."
   (if (require 'posframe nil t)
-      (let ((fringe-indicator-alist nil))
+      (let ((fringe-indicator-alist nil)
+            (coords) (poshandler))
+        (if (derived-mode-p 'pdf-view-mode)
+            (setq poshandler #'posframe-poshandler-window-center)
+          (setq coords (gptel-quick--frame-relative-coordinates pos)))
         (posframe-show " *gptel-quick*"
                        :string response
-                       :position (gptel-quick--frame-relative-coordinates pos)
+                       :position coords
                        :border-width 2
                        :border-color (face-attribute 'child-frame-border :background)
                        :initialize #'visual-line-mode
+                       :poshandler poshandler
                        :left-fringe 8
                        :right-fringe 8
                        :min-width 36
