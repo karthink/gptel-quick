@@ -146,9 +146,9 @@ quick actions on the popup."
   (if (require 'posframe nil t)
       (let ((fringe-indicator-alist nil)
             (coords) (poshandler))
-        (if (derived-mode-p 'pdf-view-mode)
-            (setq poshandler #'posframe-poshandler-window-center)
-          (setq coords (gptel-quick--frame-relative-coordinates pos)))
+        (if (and pos (not (equal (posn-x-y pos) '(0 . 0))))
+            (setq coords (gptel-quick--frame-relative-coordinates pos))
+          (setq poshandler #'posframe-poshandler-window-center))
         (posframe-show " *gptel-quick*"
                        :string response
                        :position coords
