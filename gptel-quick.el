@@ -68,6 +68,13 @@
 
 This can include other regions, buffers or files added by
 `gptel-add'.")
+(defvar gptel-quick-backend nil
+  "Set `gptel-quick-backend' to use a dedicated model. Require
+`gptel-quick-model' to be configured.")
+(defvar gptel-quick-model nil
+  "Set `gptel-quick-model' to use a dedicated model. Must be one of
+`gptel-quick-backend''s models. Require `gptel-quick-backend' to
+be configured.")
 
 ;;;###autoload
 (defun gptel-quick (query-text &optional count)
@@ -88,7 +95,9 @@ word count of the response."
          (gptel-max-tokens (floor (+ (sqrt (length query-text))
                                      (* count 2.5))))
          (gptel-use-curl)
-         (gptel-use-context (and gptel-quick-use-context 'system)))
+         (gptel-use-context (and gptel-quick-use-context 'system))
+         (gptel-backend (or gptel-quick-backend gptel-backend))
+         (gptel-model (or gptel-quick-model gptel-model)))
     (gptel-request query-text
       :system (format "Explain in %d words or fewer." count)
       :context (list query-text count
