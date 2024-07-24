@@ -91,6 +91,10 @@ word count of the response."
            (mapconcat #'identity (pdf-view-active-region-text) "\n\n"))
           (t (thing-at-point 'sexp)))
          current-prefix-arg))
+
+  (when (xor gptel-quick-backend gptel-quick-model)
+    (error "gptel-quick-backend and gptel-quick-model must be both set or unset"))
+
   (let* ((count (or count gptel-quick-word-count))
          (gptel-max-tokens (floor (+ (sqrt (length query-text))
                                      (* count 2.5))))
