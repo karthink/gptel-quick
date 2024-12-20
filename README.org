@@ -7,17 +7,17 @@ It provides one command.  Call =gptel-quick= to show a short summary or explanat
 https://github.com/karthink/gptel-quick/assets/8607532/11c21577-56e0-44fc-a6f2-14dff159bfb4
 
 When the popup is active,
-- press ~+~ to get a longer summary, 
+- press ~+~ to get a longer summary,
 - ~M-w~ (or =kill-ring-save=) to copy the response,
 - or ~C-g~ (or =keyboard-quit=) to clear it.
 
-(You probably want to bind it to a key instead of having to =M-x gptel-quick=, see Setup below for suggestions.)  
+(You probably want to bind it to a key instead of having to =M-x gptel-quick=, see Setup below for suggestions.)
 
 You can press ~+~ multiple times.
 
 Looking up a word in progressively more detail before copying the response:
 
-https://github.com/karthink/gptel-quick/assets/8607532/47c862fb-5240-4287-96cf-92f0fe194d1d  
+https://github.com/karthink/gptel-quick/assets/8607532/47c862fb-5240-4287-96cf-92f0fe194d1d
 
 It works with PDFs if you use pdf-tools in Emacs:
 
@@ -31,7 +31,7 @@ Finally, if you have follow-up questions you can switch to a chat buffer and con
 
 https://github.com/karthink/gptel-quick/assets/8607532/9d17886b-4994-4e3f-93d6-fda79fc814ad
 
-If the [[https://github.com/tumashu/posframe][posframe]] package (optional) is not installed, the response is messaged to the echo area instead.
+If the [[https://github.com/tumashu/posframe][posframe]] package (optional) is not installed or Emacs is running inside a terminal, the response is messaged to the echo area instead.
 
 You can control the response word count (approximate) via =gptel-quick-word-count=, and the popup timeout via =gptel-quick-timeout=.
 
@@ -56,4 +56,3 @@ You can set it in =embark-region-map= and =embark-identifier-map= instead of =em
 ** Notes
 
 This small package is intended as a demonstration of =gptel-request=, gptel's general purpose API for constructing prompts and querying LLMs from Emacs.
-
