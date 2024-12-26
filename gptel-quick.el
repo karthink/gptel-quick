@@ -32,7 +32,7 @@
 ;; explanation of the word at point, or an active region, in a popup.  This is
 ;; useful for quickly looking up names, words, phrases, or
 ;; summarizing/explaining prose or snippets of code, with minimal friction:
-;; 
+;;
 ;; When the popup is active, press "+" to get a longer summary, M-w (or
 ;; `kill-ring-save') to copy the text, or C-g (`keyboard-quit') to clear it.  If
 ;; you have follow-up questions you can press M-RET to switch to a chat buffer
@@ -156,7 +156,8 @@ quick actions on the popup."
 
 (defun gptel-quick--update-posframe (response pos)
   "Show RESPONSE at in a posframe (at POS) or the echo area."
-  (if (require 'posframe nil t)
+  (if (and (not (eq (window-system) nil)) ;; posframe is not terminal compatible
+           (require 'posframe nil t))
       (let ((fringe-indicator-alist nil)
             (coords) (poshandler))
         (if (and pos (not (equal (posn-x-y pos) '(0 . 0))))
