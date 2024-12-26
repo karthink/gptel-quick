@@ -70,6 +70,16 @@ will cause the result to be displayed in the echo area."
           (const :tag "Echo area" nil))
   :group 'gptel)
 
+(defvar gptel-quick-system-message
+  (lambda (count)
+    (format "Explain in %d words or fewer." count))
+  "System message for `gptel-quick'.  It is a function called with
+one argument, the desired word count -- see
+`gptel-quick-word-count'.
+
+WARNING: This variable is experimental and the calling convention is
+subject to change in the future.")
+
 (defvar gptel-quick-word-count 12
   "Approximate word count of LLM summary.")
 (defvar gptel-quick-timeout 10
@@ -114,7 +124,7 @@ word count of the response."
          (gptel-backend (or gptel-quick-backend gptel-backend))
          (gptel-model (or gptel-quick-model gptel-model)))
     (gptel-request query-text
-      :system (format "Explain in %d words or fewer." count)
+      :system (funcall gptel-quick-system-message count)
       :context (list query-text count
                      (posn-at-point (and (use-region-p) (region-beginning))))
       :callback #'gptel-quick--callback-posframe)))
