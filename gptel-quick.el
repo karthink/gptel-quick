@@ -59,6 +59,17 @@
 (declare-function pdf-view-active-region-p "pdf-view")
 (declare-function pdf-view-active-region-text "pdf-view")
 
+(defcustom gptel-quick-display (and (fboundp 'posframe-workable-p)
+                                    'posframe)
+  "How to display `gptel-quick' results.
+
+Set to `posframe' to use posframe, if available.  Any other value
+will cause the result to be displayed in the echo area."
+  :type '(choice
+          (const :tag "In posframe" posframe)
+          (const :tag "Echo area" nil))
+  :group 'gptel)
+
 (defvar gptel-quick-word-count 12
   "Approximate word count of LLM summary.")
 (defvar gptel-quick-timeout 10
@@ -132,8 +143,9 @@ quick actions on the popup."
     (pcase-let ((`(,query ,count ,pos) (plist-get info :context)))
       (gptel-quick--update-posframe response pos)
       (cl-flet ((clear-response () (interactive)
-                  (when (fboundp 'posframe-hide)
-                    (posframe-hide " *gptel-quick*")))
+                  (and (eq gptel-quick-display 'posframe)
+                       (fboundp 'posframe-hide))
+                  (posframe-hide " *gptel-quick*"))
                 (more-response  () (interactive)
                   (gptel-quick--update-posframe
                    "...generating longer summary..." pos)
@@ -156,7 +168,8 @@ quick actions on the popup."
 
 (defun gptel-quick--update-posframe (response pos)
   "Show RESPONSE at in a posframe (at POS) or the echo area."
-  (if (and (not (eq (window-system) nil)) ;; posframe is not terminal compatible
+  (if (and (display-graphic-p)          ;posframe is not terminal-compatible
+           (eq gptel-quick-display 'posframe)
            (require 'posframe nil t))
       (let ((fringe-indicator-alist nil)
             (coords) (poshandler))
