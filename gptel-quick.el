@@ -154,8 +154,8 @@ quick actions on the popup."
       (gptel-quick--update-posframe response pos)
       (cl-flet ((clear-response () (interactive)
                   (and (eq gptel-quick-display 'posframe)
-                       (fboundp 'posframe-hide))
-                  (posframe-hide " *gptel-quick*"))
+                       (fboundp 'posframe-hide)
+                       (posframe-hide " *gptel-quick*")))
                 (more-response  () (interactive)
                   (gptel-quick--update-posframe
                    "...generating longer summary..." pos)
