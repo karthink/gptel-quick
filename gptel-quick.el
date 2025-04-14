@@ -148,33 +148,34 @@ POSITION is assumed to lie in a window text area."
 
 Uses the buffer context from INFO.  Set up a transient map for
 quick actions on the popup."
-  (if (not (stringp response))
-      (message "Response failed with error: %S" response)
-    (pcase-let ((`(,query ,count ,pos) (plist-get info :context)))
-      (gptel-quick--update-posframe response pos)
-      (cl-flet ((clear-response () (interactive)
-                  (and (eq gptel-quick-display 'posframe)
-                       (fboundp 'posframe-hide)
-                       (posframe-hide " *gptel-quick*")))
-                (more-response  () (interactive)
-                  (gptel-quick--update-posframe
-                   "...generating longer summary..." pos)
-                  (gptel-quick query (* count 4)))
-                (copy-response  () (interactive) (kill-new response)
-                  (message "Copied summary to kill-ring."))
-                (create-chat () (interactive)
-                  (gptel (generate-new-buffer-name "*gptel-quick*") nil
-                         (concat query "\n\n"
-                                 (propertize response 'gptel 'response) "\n\n")
-                         t)))
-        (set-transient-map
-         (let ((map (make-sparse-keymap)))
-           (define-key map [remap keyboard-quit] #'clear-response)
-           (define-key map (kbd "+") #'more-response)
-           (define-key map [remap kill-ring-save] #'copy-response)
-           (define-key map (kbd "M-RET") #'create-chat)
-           map)
-         nil #'clear-response nil gptel-quick-timeout)))))
+  (pcase response
+    ('nil (message "Response failed with error: %s" (plist-get info :status)))
+    ((pred stringp)
+     (pcase-let ((`(,query ,count ,pos) (plist-get info :context)))
+       (gptel-quick--update-posframe response pos)
+       (cl-flet ((clear-response () (interactive)
+                   (and (eq gptel-quick-display 'posframe)
+                        (fboundp 'posframe-hide)
+                        (posframe-hide " *gptel-quick*")))
+                 (more-response  () (interactive)
+                   (gptel-quick--update-posframe
+                    "...generating longer summary..." pos)
+                   (gptel-quick query (* count 4)))
+                 (copy-response  () (interactive) (kill-new response)
+                   (message "Copied summary to kill-ring."))
+                 (create-chat () (interactive)
+                   (gptel (generate-new-buffer-name "*gptel-quick*") nil
+                          (concat query "\n\n"
+                                  (propertize response 'gptel 'response) "\n\n")
+                          t)))
+         (set-transient-map
+          (let ((map (make-sparse-keymap)))
+            (define-key map [remap keyboard-quit] #'clear-response)
+            (define-key map (kbd "+") #'more-response)
+            (define-key map [remap kill-ring-save] #'copy-response)
+            (define-key map (kbd "M-RET") #'create-chat)
+            map)
+          nil #'clear-response nil gptel-quick-timeout))))))
 
 (defun gptel-quick--update-posframe (response pos)
   "Show RESPONSE at in a posframe (at POS) or the echo area."
