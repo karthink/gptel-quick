@@ -84,8 +84,9 @@ subject to change in the future.")
   "Approximate word count of LLM summary.")
 (defvar gptel-quick-timeout 10
   "Time in seconds before dismissing the summary.")
-(defvar gptel-quick-timeout-per-token 1
-  "Time in seconds per token before dismissing the summary.")
+(defvar gptel-quick-timeout-per-token nil
+  "Time in seconds per token before dismissing the summary, in seconds.
+May be float. If not set, constant timeout is used.")
 (defvar gptel-quick-use-context nil
   "Whether to use gptel's active context.
 
@@ -122,7 +123,10 @@ word count of the response."
          (gptel-max-tokens (floor (+ (sqrt (length query-text))
                                      (* count 2.5))))
          (gptel-use-curl)
-         (gptel-quick-current-timeout (* gptel-max-tokens gptel-quick-timeout-per-token))
+         (gptel-quick-current-timeout
+          (if gptel-quick-timeout-per-token
+              (floor (* gptel-max-tokens gptel-quick-timeout-per-token))
+            gptel-quick-timeout))
          (gptel-use-context (and gptel-quick-use-context 'system))
          (gptel-backend (or gptel-quick-backend gptel-backend))
          (gptel-model (or gptel-quick-model gptel-model)))
