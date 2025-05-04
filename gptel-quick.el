@@ -84,6 +84,9 @@ subject to change in the future.")
   "Approximate word count of LLM summary.")
 (defvar gptel-quick-timeout 10
   "Time in seconds before dismissing the summary.")
+(defvar gptel-quick-timeout-per-token nil
+  "Time in seconds per token before dismissing the summary, in seconds.
+May be float. If not set, constant timeout is used.")
 (defvar gptel-quick-use-context nil
   "Whether to use gptel's active context.
 
@@ -120,6 +123,10 @@ word count of the response."
          (gptel-max-tokens (floor (+ (sqrt (length query-text))
                                      (* count 2.5))))
          (gptel-use-curl)
+         (gptel-quick-current-timeout
+          (if gptel-quick-timeout-per-token
+              (floor (* gptel-max-tokens gptel-quick-timeout-per-token))
+            gptel-quick-timeout))
          (gptel-use-context (and gptel-quick-use-context 'system))
          (gptel-backend (or gptel-quick-backend gptel-backend))
          (gptel-model (or gptel-quick-model gptel-model)))
@@ -127,7 +134,9 @@ word count of the response."
       :system (funcall gptel-quick-system-message count)
       :context (list query-text count
                      (posn-at-point (and (use-region-p) (region-beginning))))
-      :callback #'gptel-quick--callback-posframe)))
+      :callback (lambda (response info)
+                  (gptel-quick--callback-posframe
+                   response info gptel-quick-current-timeout)))))
 
 ;; From (info "(elisp) Accessing Mouse")
 (defun gptel-quick--frame-relative-coordinates (position)
@@ -143,7 +152,7 @@ POSITION is assumed to lie in a window text area."
 (declare-function posframe-show "posframe")
 (declare-function posframe-hide "posframe")
 
-(defun gptel-quick--callback-posframe (response info)
+(defun gptel-quick--callback-posframe (response info timeout)
   "Show RESPONSE appropriately, in a popup if possible.
 
 Uses the buffer context from INFO.  Set up a transient map for
@@ -152,22 +161,23 @@ quick actions on the popup."
     ('nil (message "Response failed with error: %s" (plist-get info :status)))
     ((pred stringp)
      (pcase-let ((`(,query ,count ,pos) (plist-get info :context)))
-       (gptel-quick--update-posframe response pos)
+       (gptel-quick--update-posframe response pos timeout)
        (cl-flet ((clear-response () (interactive)
                    (and (eq gptel-quick-display 'posframe)
                         (fboundp 'posframe-hide)
                         (posframe-hide " *gptel-quick*")))
-                 (more-response  () (interactive)
+                 (more-response () (interactive)
                    (gptel-quick--update-posframe
-                    "...generating longer summary..." pos)
+                    "...generating longer summary..." pos timeout)
                    (gptel-quick query (* count 4)))
-                 (copy-response  () (interactive) (kill-new response)
+                 (copy-response () (interactive) (kill-new response)
                    (message "Copied summary to kill-ring."))
                  (create-chat () (interactive)
                    (gptel (generate-new-buffer-name "*gptel-quick*") nil
                           (concat query "\n\n"
                                   (propertize response 'gptel 'response) "\n\n")
                           t)))
+         (message "gptel-quick: timeout = %i sec" timeout)
          (set-transient-map
           (let ((map (make-sparse-keymap)))
             (define-key map [remap keyboard-quit] #'clear-response)
@@ -175,9 +185,9 @@ quick actions on the popup."
             (define-key map [remap kill-ring-save] #'copy-response)
             (define-key map (kbd "M-RET") #'create-chat)
             map)
-          nil #'clear-response nil gptel-quick-timeout))))))
+          nil #'clear-response nil timeout))))))
 
-(defun gptel-quick--update-posframe (response pos)
+(defun gptel-quick--update-posframe (response pos timeout)
   "Show RESPONSE at in a posframe (at POS) or the echo area."
   (if (and (display-graphic-p)          ;posframe is not terminal-compatible
            (eq gptel-quick-display 'posframe)
@@ -199,7 +209,7 @@ quick actions on the popup."
                        :min-width 36
                        :max-width fill-column
                        :min-height 1
-                       :timeout gptel-quick-timeout))
+                       :timeout timeout))
     (message response)))
 
 (provide 'gptel-quick)
