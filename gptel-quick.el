@@ -84,6 +84,8 @@ subject to change in the future.")
   "Approximate word count of LLM summary.")
 (defvar gptel-quick-timeout 10
   "Time in seconds before dismissing the summary.")
+(defvar gptel-quick-timeout-per-token 1
+  "Time in seconds per token before dismissing the summary.")
 (defvar gptel-quick-use-context nil
   "Whether to use gptel's active context.
 
@@ -127,7 +129,9 @@ word count of the response."
       :system (funcall gptel-quick-system-message count)
       :context (list query-text count
                      (posn-at-point (and (use-region-p) (region-beginning))))
-      :callback #'gptel-quick--callback-posframe)))
+	  :callback (lambda (response info)
+				  (gptel-quick--callback-posframe
+				   response info gptel-quick-current-timeout)))))
 
 ;; From (info "(elisp) Accessing Mouse")
 (defun gptel-quick--frame-relative-coordinates (position)
@@ -143,7 +147,7 @@ POSITION is assumed to lie in a window text area."
 (declare-function posframe-show "posframe")
 (declare-function posframe-hide "posframe")
 
-(defun gptel-quick--callback-posframe (response info)
+(defun gptel-quick--callback-posframe (response info timeout)
   "Show RESPONSE appropriately, in a popup if possible.
 
 Uses the buffer context from INFO.  Set up a transient map for
@@ -175,7 +179,8 @@ quick actions on the popup."
             (define-key map [remap kill-ring-save] #'copy-response)
             (define-key map (kbd "M-RET") #'create-chat)
             map)
-          nil #'clear-response nil gptel-quick-timeout))))))
+		 (message "gptel-quick: timeout = %i sec" timeout)
+		  nil #'clear-response nil timeout))))))
 
 (defun gptel-quick--update-posframe (response pos)
   "Show RESPONSE at in a posframe (at POS) or the echo area."
