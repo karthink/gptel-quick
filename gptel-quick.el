@@ -175,7 +175,9 @@ quick actions on the popup."
             (define-key map [remap kill-ring-save] #'copy-response)
             (define-key map (kbd "M-RET") #'create-chat)
             map)
-          nil #'clear-response nil gptel-quick-timeout))))))
+          nil #'clear-response nil gptel-quick-timeout))))
+    (`(tool-call . ,tool-calls)
+     (gptel--display-tool-calls tool-calls info 'minibuffer))))
 
 (defun gptel-quick--update-posframe (response pos)
   "Show RESPONSE at in a posframe (at POS) or the echo area."
