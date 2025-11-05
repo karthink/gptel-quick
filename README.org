@@ -45,6 +45,9 @@ Install this package however you install packages, either via straight/elpaca/qu
 
 Once installed, you can call =gptel-quick= at any time on a word/region.
 
+- =gptel-quick= will use the model specified in =gptel-model= by default.  If you want to specify a model explicitly and only for =gptel-quick=, set =gptel-quick-model=
+- =gptel-quick= will not work with "reasoning" models that generate a lot of text before their final answer.  Please use a non-reasoning model, or a model in a non-reasoning mode.
+
 It might be useful to add this command as an Embark action if you use Embark:
 
 #+begin_src emacs-lisp
