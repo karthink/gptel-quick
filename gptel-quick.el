@@ -148,50 +148,67 @@ POSITION is assumed to lie in a window text area."
 
 Uses the buffer context from INFO.  Set up a transient map for
 quick actions on the popup."
-  (pcase response
-    ('nil (message "Response failed with error: %s" (plist-get info :status)))
-    ((pred stringp)
-     (pcase-let ((`(,query ,count ,pos) (plist-get info :context)))
-       (gptel-quick--update-posframe response pos)
-       (cl-flet ((clear-response () (interactive)
-                   (and (eq gptel-quick-display 'posframe)
-                        (fboundp 'posframe-hide)
-                        (posframe-hide " *gptel-quick*")))
-                 (more-response  () (interactive)
-                   (gptel-quick--update-posframe
-                    "...generating longer summary..." pos)
-                   (gptel-quick query (* count 4)))
-                 (copy-response  () (interactive) (kill-new response)
-                   (message "Copied summary to kill-ring."))
-                 (create-chat () (interactive)
-                   (gptel (generate-new-buffer-name "*gptel-quick*") nil
-                          (concat query "\n\n"
-                                  (propertize response 'gptel 'response) "\n\n")
-                          t)))
-         (set-transient-map
-          (let ((map (make-sparse-keymap)))
-            (define-key map [remap keyboard-quit] #'clear-response)
-            (define-key map (kbd "+") #'more-response)
-            (define-key map [remap kill-ring-save] #'copy-response)
-            (define-key map (kbd "M-RET") #'create-chat)
-            map)
-          nil #'clear-response nil gptel-quick-timeout))))
-    (`(tool-call . ,tool-calls)
-     (gptel--display-tool-calls tool-calls info 'minibuffer))))
+  (if (not (stringp response))
+      (message "Response failed with error: %S" response)
+    (pcase-let ((`(,query ,count ,pos) (plist-get info :context)))
+      (gptel-quick--update-posframe response pos)
+      (cl-flet ((clear-response () (interactive)
+                  (and (eq gptel-quick-display 'posframe)
+                       (fboundp 'posframe-hide)
+                       (posframe-hide " *gptel-quick*")))
+                (more-response  () (interactive)
+                  (gptel-quick--update-posframe
+                   "...generating longer summary..." pos)
+                  (gptel-quick query (* count 4)))
+                (copy-response  () (interactive) (kill-new response)
+                  (message "Copied summary to kill-ring."))
+                (create-chat () (interactive)
+                  (gptel (generate-new-buffer-name "*gptel-quick*") nil
+                         (concat query "\n\n"
+                                 (propertize response 'gptel 'response) "\n\n")
+                         t)))
+        (set-transient-map
+         (let ((map (make-sparse-keymap)))
+           (define-key map [remap keyboard-quit] #'clear-response)
+           (define-key map (kbd "+") #'more-response)
+           (define-key map [remap kill-ring-save] #'copy-response)
+           (define-key map (kbd "M-RET") #'create-chat)
+           map)
+         nil #'clear-response nil gptel-quick-timeout)))))
 
 (defun gptel-quick--update-posframe (response pos)
   "Show RESPONSE at in a posframe (at POS) or the echo area."
-  (if (and (display-graphic-p)          ;posframe is not terminal-compatible
+  (if (and (display-graphic-p)
            (eq gptel-quick-display 'posframe)
            (require 'posframe nil t))
-      (let ((fringe-indicator-alist nil)
-            (coords) (poshandler))
-        (if (and pos (not (equal (posn-x-y pos) '(0 . 0))))
-            (setq coords (gptel-quick--frame-relative-coordinates pos))
-          (setq poshandler #'posframe-poshandler-window-center))
+      (let* ((fringe-indicator-alist nil)
+             (char-width (frame-char-width))
+             (estimated-width (* (min (max (length response) 36) fill-column)
+                                 char-width))
+             (frame-w (frame-pixel-width))
+
+			 (poshandler
+			  (if (and pos (not (equal (posn-x-y pos) '(0 . 0))))
+				  (let ((raw-coords (gptel-quick--frame-relative-coordinates pos)))
+					(lambda (info)
+					  (let* ((x (car raw-coords))
+							 (y (cdr raw-coords))
+							 (pf-width (or (plist-get info :posframe-width)
+										   estimated-width))
+							 (pf-height (or (plist-get info :posframe-height) 0))
+							 (frame-h (frame-pixel-height))
+							 (adjusted-x (if (> (+ x pf-width) frame-w)
+											 (max 0 (- frame-w pf-width 20))
+										   x))
+							 (adjusted-y (if (> (+ y pf-height) frame-h)
+											 (max 0 (- y pf-height 10))
+										   y)))
+						(cons adjusted-x adjusted-y))))
+				#'posframe-poshandler-window-center))			 
+			 )
+		
         (posframe-show " *gptel-quick*"
                        :string response
-                       :position coords
                        :border-width 2
                        :border-color (face-attribute 'vertical-border :foreground)
                        :initialize #'visual-line-mode
