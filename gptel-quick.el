@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2024  Karthik Chikmagalur
 
-;; Author: Karthik Chikmagalur(require 'gptel) <karthikchikmagalur@gmail.com>
+;; Author: Karthik Chikmagalur <karthikchikmagalur@gmail.com>
 ;; Version: 0.0.5
 ;; Package-Requires: ((emacs "28.1") (compat "29.1.4.1") (gptel "0.8.0"))
 ;; Keywords: convenience, help, extensions
@@ -119,7 +119,6 @@ word count of the response."
   (let* ((count (or count gptel-quick-word-count))
          (gptel-max-tokens (floor (+ (sqrt (length query-text))
                                      (* count 2.5))))
-         (gptel-use-curl)
          (gptel-use-context (and gptel-quick-use-context 'system))
          (gptel-backend (or gptel-quick-backend gptel-backend))
          (gptel-model (or gptel-quick-model gptel-model)))
